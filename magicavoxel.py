@@ -21,10 +21,10 @@ def write_xyzi_chunk(volume):
                     
     for (slice, row, col), value in np.ndenumerate(volume):
         if value != 0:
-            #voxels.append((col, row, slice, value))
             chunk_content = chunk_content + struct.pack('BBBB', col, row, slice, value)
             
-    chunk_content = struct.pack('i', int(len(chunk_content) / 4)) + chunk_content
+    num_voxels = len(chunk_content) // 4 # 4 bytes per voxel
+    chunk_content = struct.pack('i', num_voxels) + chunk_content
                     
     return write_chunk(b'XYZI', chunk_content, bytearray())
     
