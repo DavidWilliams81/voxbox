@@ -1,17 +1,19 @@
-#import random
 import struct
 
 import numpy as np
 
-#floatlist = [random.random() for _ in range(10)]
-#buf = struct.pack('%sf' % len(floatlist), *floatlist)
+def write_chunk(id, chunk_content, child_chunks):
+    
+    data = bytearray(id)
+    data = data + struct.pack('ii', len(chunk_content), len(child_chunks))
+    data = data + chunk_content
+    data = data + child_chunks
+    return data
 
 def write_size_chunk(volume):
     
-    data = bytearray(b'SIZE')
-    data = data + struct.pack('ii', 12, 0) # Size of chunk and children
-    data = data + struct.pack('iii', len(volume[0][0]), len(volume[0]), len(volume)) # Size of volume
-    return data
+    chunk_content = struct.pack('iii', len(volume[0][0]), len(volume[0]), len(volume))
+    return write_chunk(b'SIZE', chunk_content, bytearray())
     
 def write_xyzi_chunk(volume):
     
