@@ -16,33 +16,17 @@ def write_size_chunk(volume):
     return write_chunk(b'SIZE', chunk_content, bytearray())
     
 def write_xyzi_chunk(volume):
-    
-    slice_count = len(volume)
-    row_count = len(volume[0])
-    col_count = len(volume[0][0])
 
-    voxels = []
-    
-    for s in range(0, slice_count):
-        for r in range(0, row_count):
-            for c in range(0, col_count):
-                
-                voxel = volume[s][r][c]
-                if voxel != 0:
-                    voxels.append((c, r, s, voxel))
+    chunk_content = bytearray()
                     
-    chunk_content = struct.pack('i', len(voxels))
-    for voxel in voxels:        
-        chunk_content = chunk_content + struct.pack('BBBB', voxel[0], voxel[1], voxel[2], voxel[3])
-        
-    data = bytearray(b'XYZI')
-    data = data + struct.pack('ii', len(chunk_content), 0)
-    data = data + chunk_content
-    return data
-    
-    #data = bytearray(b'XYZI')
-    #data = data + struct.pack('ii', 12, 0) # Size of chunk and children
-    #data = data + struct.pack('iii', 0x28, 0x28, 0x28) # Size of volume
+    for (slice, row, col), value in np.ndenumerate(volume):
+        if value != 0:
+            #voxels.append((col, row, slice, value))
+            chunk_content = chunk_content + struct.pack('BBBB', col, row, slice, value)
+            
+    chunk_content = struct.pack('i', int(len(chunk_content) / 4)) + chunk_content
+                    
+    return write_chunk(b'XYZI', chunk_content, bytearray())
     
 def write_pack_chunk(volume):
   
