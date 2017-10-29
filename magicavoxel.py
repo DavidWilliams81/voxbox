@@ -59,12 +59,15 @@ def write_magicavoxel(volume):
     return data
 
 import numpy as np
+import scipy as sp
 
-def sinc2d(x, y, freq, height):
+def waves(freq, height):
     x,y = np.mgrid[0:row_count, 0:col_count]
-    result = np.sinc(np.hypot(x * freq, y * freq))
-    result += 0.3
-    result *= (height / 1.3)
+    dist = np.hypot(x * freq, y * freq)
+    #result = np.sin(dist) / np.sqrt(dist)
+    result = sp.special.j0(dist)
+    result += 0.4
+    result *= (height / 1.4)
     return result
 
 row_count = 40
@@ -78,7 +81,7 @@ slice_count = 40
 #height=np.sinc(np.hypot(x / row_count,y / col_count))
 #height *= 39
 
-height = sinc2d(x, y, 0.2, slice_count)
+height = waves(0.4, slice_count)
 
 v = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
 v[0x00][0x1a][0x0a] = 0x4f
