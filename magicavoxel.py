@@ -58,8 +58,37 @@ def write_magicavoxel(volume):
     data = data + write_main_chunk(volume)
     return data
 
-v = np.zeros((0x28, 0x28, 0x28), dtype=np.uint8)
+import numpy as np
+
+def sinc2d(x, y, freq, height):
+    x,y = np.mgrid[0:row_count, 0:col_count]
+    result = np.sinc(np.hypot(x * freq, y * freq))
+    result += 0.3
+    result *= (height / 1.3)
+    return result
+
+row_count = 40
+col_count = 40
+slice_count = 40
+
+# See https://goo.gl/AP753K
+# See https://goo.gl/W15gma
+# See https://goo.gl/AXRypy
+#x,y = np.mgrid[0:row_count, 0:col_count]
+#height=np.sinc(np.hypot(x / row_count,y / col_count))
+#height *= 39
+
+height = sinc2d(x, y, 0.2, slice_count)
+
+v = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
 v[0x00][0x1a][0x0a] = 0x4f
+ 
+for slice in range(0, slice_count):
+    for col in range(0, col_count):
+        for row in range(0, row_count):
+            if slice < height[col][row]:
+                v[slice][col][row] = 0x4f
+    
     
 result = write_magicavoxel(v)
 
