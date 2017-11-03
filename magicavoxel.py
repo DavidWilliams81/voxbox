@@ -16,24 +16,23 @@ def write_size_chunk(volume):
     return write_chunk(b'SIZE', chunk_content, bytearray())
     
 def write_xyzi_chunk(volume):
-
-    chunk_content = bytearray()
-                    
-    for (slice, row, col), value in np.ndenumerate(volume):
-        if value != 0:
-            chunk_content = chunk_content + struct.pack('BBBB', col, row, slice, value)
-            
-    num_voxels = len(chunk_content) // 4 # 4 bytes per voxel
-    chunk_content = struct.pack('i', num_voxels) + chunk_content
+    
+    values = np.extract(volume, volume)
+    (x, y, z) = np.nonzero(volume)
+    voxels = np.stack([z.astype(np.uint8), y.astype(np.uint8), x.astype(np.uint8), values])
+    voxels = voxels.transpose()
+    voxels = voxels.reshape(-1)
+    
+    chunk_content = struct.pack('i', len(values))
+    chunk_content += bytearray(voxels.tobytes())
                     
     return write_chunk(b'XYZI', chunk_content, bytearray())
     
 def write_pack_chunk(volume):
-  
-    data = bytearray(b'PACK')
-    data = data + struct.pack('ii', 4, 0) # 4 bytes to specify number of models
-    data = data + struct.pack('i', 1) # 1 model for now    
-    return data
+    
+    chunk_content = struct.pack('i', 1) # 1 model for now    
+    return write_chunk(b'PACK', chunk_content, bytearray())
+
 
 def write_main_chunk(volume):
 
@@ -70,9 +69,9 @@ def waves(freq, height):
     result *= (height / 1.4)
     return result
 
-row_count = 40
-col_count = 40
-slice_count = 40
+row_count = 126
+col_count = 126
+slice_count = 64
 
 # See https://goo.gl/AP753K
 # See https://goo.gl/W15gma
