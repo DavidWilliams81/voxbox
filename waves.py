@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 
-import magicavoxel
+import voxbox.magicavoxel
 
 def waves(freq, height):
     x,y = np.mgrid[0:row_count, 0:col_count]
@@ -35,7 +35,7 @@ for slice in range(0, slice_count):
                 v[slice][col][row] = 0x4f
     
     
-result = magicavoxel.write_magicavoxel(v)
+result = voxbox.magicavoxel.write_magicavoxel(v)
 
 
 #data = bytearray(b'TEST')
