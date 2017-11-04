@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 
+import voxbox as vb
 import voxbox.magicavoxel
 
 def waves(freq, height):
@@ -25,17 +26,17 @@ slice_count = 64
 
 height = waves(0.4, slice_count)
 
-v = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
-v[0x00][0x1a][0x0a] = 0x4f
+voxels = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
+voxels[0x00][0x1a][0x0a] = 0x4f
  
 for slice in range(0, slice_count):
     for col in range(0, col_count):
         for row in range(0, row_count):
             if slice < height[col][row]:
-                v[slice][col][row] = 0x4f
+                voxels[slice][col][row] = 0x4f
     
     
-result = voxbox.magicavoxel.write_magicavoxel(v)
+result = vb.magicavoxel.write(voxels)
 
 
 #data = bytearray(b'TEST')

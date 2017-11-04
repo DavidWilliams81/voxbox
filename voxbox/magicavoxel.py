@@ -50,7 +50,7 @@ def write_main_chunk(volume):
     
     return data
     
-def write_magicavoxel(volume):
+def write(volume):
     
     data = bytearray(b'VOX ')
     data = data + struct.pack('i', 150);
