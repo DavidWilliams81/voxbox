@@ -1,7 +1,6 @@
 import numpy as np
 import scipy as sp
 
-import voxbox as vb
 import voxbox.magicavoxel
 
 def waves(freq, height):
@@ -36,12 +35,19 @@ for slice in range(0, slice_count):
                 voxels[slice][col][row] = 0x4f
     
     
-result = vb.magicavoxel.write(voxels)
+result = voxbox.magicavoxel.write(voxels)
 
-
-#data = bytearray(b'TEST')
-#write_main_chunk(data)
-#
-file = open("filename.vox", "wb")
+filename = "waves.vox"
+file = open(filename, "wb")
 file.write(result)
 file.close()
+
+# Open the file in the default application
+# From: https://stackoverflow.com/a/434612/2337254
+import subprocess, os, sys
+if sys.platform.startswith('darwin'):
+    subprocess.call(('open', filename))
+elif os.name == 'nt':
+    os.startfile(filename)
+elif os.name == 'posix':
+    subprocess.call(('xdg-open', filename))
