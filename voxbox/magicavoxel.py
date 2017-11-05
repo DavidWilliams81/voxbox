@@ -2,7 +2,7 @@ import struct
 
 import numpy as np
 
-import util
+import voxbox.util
 
 def write_chunk(id, chunk_content, child_chunks):
     
@@ -73,5 +73,5 @@ if __name__ == "__main__":
           
     filename = "test_magicavoxel_write.vox"
     write(voxels, filename)
-    util.open_in_default_app(filename)
+    voxbox.util.open_in_default_app(filename)
     
