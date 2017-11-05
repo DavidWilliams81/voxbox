@@ -50,9 +50,13 @@ def write_main_chunk(volume):
     
     return data
     
-def write(volume):
+def write(volume, filename):
     
     data = bytearray(b'VOX ')
     data = data + struct.pack('i', 150);
     data = data + write_main_chunk(volume)
-    return data
+    
+    file = open(filename, "wb")
+    file.write(data)
+    file.close()
+

@@ -35,13 +35,10 @@ for slice in range(0, slice_count):
             if slice < height[col][row]:
                 voxels[slice][col][row] = 0x4f
     
-    
-result = voxbox.magicavoxel.write(voxels)
 
+# Save the volume to disk
 filename = "waves.vox"
-file = open(filename, "wb")
-file.write(result)
-file.close()
+voxbox.magicavoxel.write(voxels, filename)
 
 # Open the file in the default app, which should be MagicaVoxel. Could instead
 # try to run MagicaVoxel directly but then we need to know where it is.
