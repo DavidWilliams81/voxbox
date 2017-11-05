@@ -15,7 +15,7 @@ def waves(freq, height):
 
 row_count = 126
 col_count = 126
-slice_count = 64
+plane_count = 64
 
 # See https://goo.gl/AP753K
 # See https://goo.gl/W15gma
