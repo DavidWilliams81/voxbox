@@ -24,16 +24,16 @@ slice_count = 64
 #height=np.sinc(np.hypot(x / row_count,y / col_count))
 #height *= 39
 
-height = waves(0.4, slice_count)
+height = waves(0.4, plane_count)
 
-voxels = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
+voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
 voxels[0x00][0x1a][0x0a] = 0x4f
  
-for slice in range(0, slice_count):
+for plane in range(0, plane_count):
     for col in range(0, col_count):
         for row in range(0, row_count):
-            if slice < height[col][row]:
-                voxels[slice][col][row] = 0x4f
+            if plane < height[col][row]:
+                voxels[plane][col][row] = 0x4f
     
 
 # Save the volume to disk

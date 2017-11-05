@@ -66,9 +66,9 @@ if __name__ == "__main__":
     
     row_count = 40
     col_count = 40
-    slice_count = 40
+    plane_count = 40
     
-    voxels = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
+    voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
     voxels[0x00][0x1a][0x0a] = 0x4f
           
     filename = "test_magicavoxel_write.vox"
