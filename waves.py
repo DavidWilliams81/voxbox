@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sp
 
 import voxbox.magicavoxel
+import voxbox.util
 
 def waves(freq, height):
     x,y = np.mgrid[0:row_count, 0:col_count]
@@ -42,12 +43,6 @@ file = open(filename, "wb")
 file.write(result)
 file.close()
 
-# Open the file in the default application
-# From: https://stackoverflow.com/a/434612/2337254
-import subprocess, os, sys
-if sys.platform.startswith('darwin'):
-    subprocess.call(('open', filename))
-elif os.name == 'nt':
-    os.startfile(filename)
-elif os.name == 'posix':
-    subprocess.call(('xdg-open', filename))
+# Open the file in the default app, which should be MagicaVoxel. Could instead
+# try to run MagicaVoxel directly but then we need to know where it is.
+voxbox.util.open_in_default_app(filename)
