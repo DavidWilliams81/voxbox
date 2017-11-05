@@ -1,17 +1,42 @@
 import numpy as np
 import scipy as sp
 
+import math
+
 import voxbox.magicavoxel
 import voxbox.util
 
-def waves(freq, height):
-    x,y = np.mgrid[0:row_count, 0:col_count]
-    dist = np.hypot(x * freq, y * freq)
-    #result = np.sin(dist) / np.sqrt(dist)
-    result = sp.special.j0(dist)
-    result += 0.4
-    result *= (height / 1.4)
+def generate_waves_heightmap(row_count, col_count):
+    
+    freq = 0.4    
+    centre_row = (row_count / 2.0) + 0.5
+    centre_col = (col_count / 2.0) + 0.5
+    
+    result = np.zeros([col_count, row_count])
+    
+    for col in range(0, col_count):
+        for row in range(0, row_count):
+            
+            col_dist = col - centre_col
+            row_dist = row - centre_row
+            dist = math.sqrt(row_dist * row_dist + col_dist * col_dist)
+            
+            dist *= freq
+            
+            result[col][row] = math.sin(dist) / dist
+            
+            #result[col][row] += 0.3
+            #result[col][row] /= 1.4
+                  
     return result
+    
+#            x,y = np.mgrid[0:row_count, 0:col_count]
+#            dist = np.hypot(x * freq, y * freq)
+#            result = np.sin(dist) / np.sqrt(dist)
+#            #result = sp.special.j0(dist)
+#            result += 0.4
+#            result /= 1.4
+#            return result
 
 row_count = 126
 col_count = 126
@@ -24,7 +49,7 @@ plane_count = 64
 #height=np.sinc(np.hypot(x / row_count,y / col_count))
 #height *= 39
 
-height = waves(0.4, plane_count)
+heightmap = generate_waves_heightmap(row_count, col_count)
 
 voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
 voxels[0x00][0x1a][0x0a] = 0x4f
@@ -32,7 +57,11 @@ voxels[0x00][0x1a][0x0a] = 0x4f
 for plane in range(0, plane_count):
     for col in range(0, col_count):
         for row in range(0, row_count):
-            if plane < height[col][row]:
+            
+            height = heightmap[col, row]
+            height *= plane_count
+            
+            if plane < height:
                 voxels[plane][col][row] = 0x4f
     
 
