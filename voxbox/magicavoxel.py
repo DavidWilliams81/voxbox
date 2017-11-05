@@ -2,6 +2,8 @@ import struct
 
 import numpy as np
 
+import util
+
 def write_chunk(id, chunk_content, child_chunks):
     
     data = bytearray(id)
@@ -60,3 +62,16 @@ def write(volume, filename):
     file.write(data)
     file.close()
 
+if __name__ == "__main__":
+    
+    row_count = 40
+    col_count = 40
+    slice_count = 40
+    
+    voxels = np.zeros((slice_count, col_count, row_count), dtype=np.uint8)
+    voxels[0x00][0x1a][0x0a] = 0x4f
+          
+    filename = "test_magicavoxel_write.vox"
+    write(voxels, filename)
+    util.open_in_default_app(filename)
+    
