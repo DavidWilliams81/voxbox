@@ -54,7 +54,7 @@ def write_main_chunk(volume, palette):
     child_chunks += write_size_chunk(volume)
     child_chunks += write_xyzi_chunk(volume)
     
-    if palette != None:
+    if palette is not None:
         child_chunks += write_rgba_chunk(palette)
     
     return write_chunk(b'MAIN', None, child_chunks)
@@ -76,10 +76,12 @@ if __name__ == "__main__":
     plane_count = 40
     
     voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
-    voxels[0x00][0x1a][0x0a] = 0x4f
+    voxels[0x00][0x1a][0x0a] = 1
     
     palette = np.zeros((256, 4), dtype=np.uint8)
     palette[1] = [255, 0, 0, 255]
+    palette[2] = [0, 255, 0, 255]
+    palette[3] = [0, 0, 255, 255]
     palette[255] = [255, 255, 255, 255]
           
     filename = "test_magicavoxel_write.vox"
