@@ -1,11 +1,11 @@
-# voxbox
-The Voxel Toolbox (a.k.a 'voxbox') is a Python package for working with voxel data, primarily for making voxel art and video games.
+# VoxBox
+The Voxel Toolbox (a.k.a 'VoxBox') is a Python package for working with voxel data, primarily for making voxel art and video games.
 
 ## Features
 * Export NumPy array as [MagicaVoxel](https://ephtracy.github.io/) file.
 
 ## Installation
-Download the code update your $PYTHONPATH environment variable to ensure your Python interpreter can find it. I doubt if I'll get around to making this into a proper package with installer, etc.
+Download the code update your $PYTHONPATH environment variable to ensure your Python interpreter can find it. I have no current plans to make this into a proper package with PIP installer, etc.
 
 ## Example
 The following snippet shows how to export a NumPy array as a MagicaVoxel file. See [waves.py](examples/waves/waves.py) for the complete code
