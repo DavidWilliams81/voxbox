@@ -41,21 +41,15 @@ def generate_waves_heightmap(row_count, col_count):
                   
     return result
 
-def generate_rainbow_colourmap(length):
+def generate_rainbow_colourmap():
     
-    palette = np.zeros((length, 4), dtype=np.uint8)
+    palette = np.zeros((256, 4), dtype=np.uint8)
     
-    for i in range(0, length):
+    for index in range(0, 256):
         
-        hue = i / (length - 1.0)
-        sat = 1.0
-        val = 1.0
+        rgb = colorsys.hsv_to_rgb(index / 255.0, 1.0, 1.0)
         
-        rgb = colorsys.hsv_to_rgb(hue, sat,val)
-        
-        #print(rgb)
-        
-        palette[i] = [rgb[0] * 255.0, rgb[1] * 255.0, rgb[2] * 255.0, 255]
+        palette[index] = [rgb[0] * 255.0, rgb[1] * 255.0, rgb[2] * 255.0, 255]
         
     return palette
         
@@ -64,7 +58,7 @@ row_count = 126
 col_count = 126
 plane_count = 64
 
-palette = generate_rainbow_colourmap(256)
+palette = generate_rainbow_colourmap()
 
 # Create a simple heightmap (could also load something from disk)
 heightmap = generate_waves_heightmap(row_count, col_count)
