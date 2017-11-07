@@ -71,18 +71,28 @@ def write(volume, filename, palette = None):
 
 if __name__ == "__main__":
     
-    row_count = 40
-    col_count = 40
-    plane_count = 40
-    
-    voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
-    voxels[0x00][0x1a][0x0a] = 1
-    
     palette = np.zeros((256, 4), dtype=np.uint8)
     palette[1] = [255, 0, 0, 255]
     palette[2] = [0, 255, 0, 255]
     palette[3] = [0, 0, 255, 255]
     palette[255] = [255, 255, 255, 255]
+    
+    row_count = 40
+    col_count = 40
+    plane_count = 40
+    
+    voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+          
+    for row in range(0, row_count):
+        voxels[0][0][row] = 1; # Red
+              
+    for col in range(0, col_count):
+        voxels[0][col][0] = 2; # Green
+              
+    for plane in range(0, plane_count):
+        voxels[plane][0][0] = 3; #Blue
+              
+    voxels[0][0][0] = 255 # White
           
     filename = "test_magicavoxel_write.vox"
     write(voxels, filename, palette)
