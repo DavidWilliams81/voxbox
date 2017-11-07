@@ -2,6 +2,9 @@
 import math
 import numpy as np
 
+# For generating our palette
+import colorsys
+
 # For saving the result
 import voxbox.util
 import voxbox.magicavoxel
@@ -38,10 +41,30 @@ def generate_waves_heightmap(row_count, col_count):
                   
     return result
 
+def generate_rainbow_colourmap(length):
+    
+    palette = np.zeros((length, 4), dtype=np.uint8)
+    
+    for i in range(0, length):
+        
+        hue = i / (length - 1.0)
+        sat = 1.0
+        val = 1.0
+        
+        rgb = colorsys.hsv_to_rgb(hue, sat,val)
+        
+        #print(rgb)
+        
+        palette[i] = [rgb[0] * 255.0, rgb[1] * 255.0, rgb[2] * 255.0, 255]
+        
+    return palette
+        
 # Define the size of the volume
 row_count = 126
 col_count = 126
 plane_count = 64
+
+palette = generate_rainbow_colourmap(256)
 
 # Create a simple heightmap (could also load something from disk)
 heightmap = generate_waves_heightmap(row_count, col_count)
@@ -49,8 +72,8 @@ heightmap = generate_waves_heightmap(row_count, col_count)
 # Create a NumPy array
 voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
 
-# Select a material (white in default palette)
-material_index = 1
+# Later we will choose a material based on the height (plane) of the voxel
+palette_offset_per_plane = (len(palette) - 1.0) / plane_count
 
 # For each voxel in the volume
 for plane in range(0, plane_count):
@@ -65,12 +88,12 @@ for plane in range(0, plane_count):
             # If the current voxel is below the
             # heightmap then set it to be solid.
             if plane <= height:
-                voxels[plane][col][row] = material_index 
+                voxels[plane][col][row] = palette_offset_per_plane * plane
     
 
 # Save the volume to disk as a MagicaVoxel file.
 filename = "waves.vox"
-voxbox.magicavoxel.write(voxels, filename)
+voxbox.magicavoxel.write(voxels, filename, palette)
 
 # Open the file in the default app, which should be MagicaVoxel. Could instead
 # try to run MagicaVoxel directly but then we need to know where it is.
