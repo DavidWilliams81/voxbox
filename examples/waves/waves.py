@@ -43,13 +43,18 @@ def generate_waves_heightmap(row_count, col_count):
 
 def generate_rainbow_colourmap():
     
-    palette = np.zeros((256, 4), dtype=np.uint8)
+    # Create an empty palette
+    palette = np.zeros((256, 4))
+
+    for index in range(0, 256):    
+        
+        rgb = colorsys.hsv_to_rgb(index / 255.0, 1.0, 1.0) # Get an RGB value
+        palette[index] = np.array(rgb + (1.0,)) # Append 1.0 for alpha   
     
-    for index in range(0, 256):
-        
-        rgb = colorsys.hsv_to_rgb(index / 255.0, 1.0, 1.0)
-        
-        palette[index] = [rgb[0] * 255.0, rgb[1] * 255.0, rgb[2] * 255.0, 255]
+    # Our palette is in the 0.0 to 1.0 floating point range.
+    # Convert to 8-bit unsigned integers for MagicaVoxel
+    palette *= 255.0
+    palette = palette.astype(np.uint8)
         
     return palette
         
