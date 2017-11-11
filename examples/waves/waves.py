@@ -75,7 +75,8 @@ for frame in range(0, frame_count):
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
     # Create a simple heightmap (could also load something from disk)
-    heightmap = generate_waves_heightmap(row_count, col_count, frame / frame_count)
+    time_step = frame / frame_count
+    heightmap = generate_waves_heightmap(row_count, col_count, time_step)
 
     for plane in range(0, plane_count):
         for col in range(0, col_count):
