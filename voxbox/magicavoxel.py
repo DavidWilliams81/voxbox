@@ -39,7 +39,7 @@ def write_xyzi_chunk(volume):
     
 def write_pack_chunk(volume):
     
-    chunk_content = struct.pack('i', 1) # 1 model for now    
+    chunk_content = struct.pack('i', len(volume))
     return write_chunk(b'PACK', chunk_content, None)
     
 def write_rgba_chunk(palette):
@@ -51,8 +51,15 @@ def write_rgba_chunk(palette):
 def write_main_chunk(volume, palette):
     
     child_chunks  = write_pack_chunk(volume)
-    child_chunks += write_size_chunk(volume)
-    child_chunks += write_xyzi_chunk(volume)
+    
+    if volume.ndim == 3:
+        child_chunks += write_size_chunk(volume)
+        child_chunks += write_xyzi_chunk(volume)
+    
+    elif volume.ndim == 4:
+        for i in range(0, len(volume)):
+            child_chunks += write_size_chunk(volume[i])
+            child_chunks += write_xyzi_chunk(volume[i])
     
     if palette is not None:
         child_chunks += write_rgba_chunk(palette)
