@@ -12,8 +12,27 @@ import voxbox.magicavoxel
 row_count = 126
 col_count = 126
 plane_count = 64
-frame_count = 1
+frame_count = 10
 
+heightmap = np.zeros((frame_count, row_count, col_count))
+    
+for i in range(0, 4):
+    a = np.random.rand(frame_count, row_count, col_count)
+    octave = scipy.ndimage.filters.gaussian_filter(a, math.pow(2.0, i), mode='wrap')    
+
+    octave = octave - octave.min()
+    octave = octave / octave.max()
+    
+    octave *= math.pow(2.0, i)
+    
+    heightmap += octave
+    
+heightmap = heightmap - heightmap.min()
+heightmap = heightmap / heightmap.max()
+
+heightmap -= 0.5
+heightmap *= 0.2
+heightmap += 0.5
 
 # Create a NumPy array
 voxels = np.zeros((frame_count, plane_count, col_count, row_count), dtype=np.uint8)
@@ -22,28 +41,6 @@ voxels = np.zeros((frame_count, plane_count, col_count, row_count), dtype=np.uin
 for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
-    
-    heightmap = np.zeros((row_count, col_count))
-    
-    for i in range(0, 5):
-        a = np.random.rand(126, 126)
-        octave = scipy.ndimage.filters.gaussian_filter(a, math.pow(2.0, i), mode='wrap')    
-    
-        octave = octave - octave.min()
-        octave = octave / octave.max()
-        
-        octave -= 0.5
-        octave *= math.pow(2.0, i)
-        octave += 0.5
-        
-        heightmap += octave
-        
-    heightmap = heightmap - heightmap.min()
-    heightmap = heightmap / heightmap.max()
-    
-    heightmap -= 0.5
-    heightmap *= 0.2
-    heightmap += 0.5
 
     for plane in range(0, plane_count):
         for col in range(0, col_count):
@@ -51,13 +48,13 @@ for frame in range(0, frame_count):
                 
                 # Get the height from the heightmap, and
                 # scale to the height of the volume
-                height = heightmap[col, row]
+                height = heightmap[frame][col][row]
                 height *= plane_count
                 
                 # If the current voxel is below the
                 # heightmap then set it to be solid.
                 if plane <= height:
-                    voxels[frame][plane][col][row] = 1
+                    voxels[frame][plane][col][row] = 79
     
 
 # Save the volume to disk as a MagicaVoxel file.
