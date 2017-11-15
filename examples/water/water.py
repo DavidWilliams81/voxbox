@@ -40,7 +40,16 @@ def checkered_box(volume, lower_corner, upper_corner):
         for col in range(lower_corner[1], upper_corner[1] + 1):
             for row in range(lower_corner[2], upper_corner[2] + 1):
                 
-                volume[plane][col][row] = 1
+                p = (int(plane) // 8) % 2
+                c = (int(col) // 8) % 2
+                r = (int(row) // 8) % 2
+                    
+                val = p ^ c ^ r
+                
+                if val == 0:                
+                    volume[plane][col][row] = 246
+                else:
+                    volume[plane][col][row] = 252
 
 # Create a NumPy array
 voxels = np.zeros((frame_count, plane_count, col_count, row_count), dtype=np.uint8)
@@ -57,6 +66,8 @@ for frame in range(0, frame_count):
     
     checkered_box(voxels[frame], (0, 0, 0), (plane_count-25, row_count - 1, 0))
     checkered_box(voxels[frame], (0, 0, col_count - 1), (plane_count-25, row_count - 1, col_count - 1))
+    
+    checkered_box(voxels[frame], (0, 50, 50), (plane_count - 1, 76, 76))
 
     for plane in range(0, plane_count):
         for col in range(0, col_count):
@@ -73,7 +84,7 @@ for frame in range(0, frame_count):
                     
                     # But only if it is currently empty
                     if voxels[frame][plane][col][row] == 0:
-                        voxels[frame][plane][col][row] = 79
+                        voxels[frame][plane][col][row] = 151
     
 
 # Save the volume to disk as a MagicaVoxel file.
