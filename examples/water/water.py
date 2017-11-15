@@ -12,13 +12,13 @@ import voxbox.magicavoxel
 row_count = 126
 col_count = 126
 plane_count = 64
-frame_count = 2
+frame_count = 30
 
 heightmap = np.zeros((frame_count, row_count, col_count))
     
 for i in range(0, 4):
     a = np.random.rand(frame_count, row_count, col_count)
-    octave = scipy.ndimage.filters.gaussian_filter(a, math.pow(2.0, i), mode='wrap')    
+    octave = scipy.ndimage.filters.gaussian_filter(a, (math.pow(2.0, max(0, i-1)), math.pow(2.0, i), math.pow(2.0, i)), mode='wrap')    
 
     octave = octave - octave.min()
     octave = octave / octave.max()
