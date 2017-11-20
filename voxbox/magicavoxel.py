@@ -75,8 +75,99 @@ def write(volume, filename, palette = None):
     file = open(filename, "wb")
     file.write(data)
     file.close()
+    
+def read_chunk(data):
+    
+    id, data = data[:4], data[4:]
+    
+    print(id)
+    
+    (chunk_content_size, child_chunks_size), data = struct.unpack("II", data[:8]), data[8:]
+    
+    chunk_content = data[0 : chunk_content_size]
+    child_chunks = data[chunk_content_size : chunk_content_size + child_chunks_size]
+    
+    while len(child_chunks) > 0:
+    
+        child_chunk_size = read_chunk(child_chunks)
+        
+        child_chunks = child_chunks[child_chunk_size:]
+    
+    return 4 + 8 + chunk_content_size + child_chunks_size
+    
+def read_size_chunk(file):
+
+    (row_count, col_count, plane_count) = struct.unpack("III", file.read(12))
+    
+    print("size", row_count, col_count, plane_count)
+    
+    return np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+    
+def read_xyzi_chunk(file, volume_to_fill):
+    
+    (voxel_count,) = struct.unpack("I", file.read(4))
+    #chunk_content = chunk_content[4:]
+
+    for i in range(voxel_count):
+        
+        (plane, col, row, index) = struct.unpack("BBBB", file.read(4))        
+        volume_to_fill[plane, col, row] = index
+    
+def read_pack_chunk(chunk_content):
+    
+    print("pack")
+    
+def read_main_chunk(file):
+    
+    (chunk_content_size, child_chunks_size) = struct.unpack("II", file.read(8))
+    
+    print(chunk_content_size, child_chunks_size)
+    
+    volume_list = []
+    
+    while True:
+        
+        id=file.read(4)
+        if not id: break
+            
+        (chunk_content_size, child_chunks_size) = struct.unpack("II", file.read(8))
+        
+        #print(id)
+        
+        #chunk_content = file.read(chunk_content_size)
+        
+        if id == b'SIZE':
+            volume_list.append(read_size_chunk(file))            
+        elif id == b'XYZI':
+            read_xyzi_chunk(file, volume_list[-1])
+        else:
+            file.read(chunk_content_size) # Just consume it
+            
+    return volume_list
+            
+        
+    
+def read(filename):
+    
+    file = open(filename, "rb")
+    
+    id = file.read(4)
+    (ver,) = struct.unpack("I", file.read(4))
+    
+
+    main_chunk_header = file.read(4)
+    
+    volume_list = read_main_chunk(file)
+    
+    return volume_list
+
 
 if __name__ == "__main__":
+    
+#    filename = "test_magicavoxel_write.vox"
+#    volume_list = read(filename)
+#    
+#    print("Origin voxel = {}".format(volume_list[0][0][0][0]))
     
     palette = np.zeros((256, 4), dtype=np.uint8)
     palette[1] = [255, 0, 0, 255]
