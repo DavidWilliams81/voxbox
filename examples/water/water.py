@@ -51,23 +51,25 @@ def checkered_box(volume, lower_corner, upper_corner, col0, col1):
                 else:
                     volume[plane][col][row] = col1
 
-# Create a NumPy array
-voxels = np.zeros((frame_count, plane_count, col_count, row_count), dtype=np.uint8)
+# Start with an empty list of volumes
+volume_list = []
 
 # For each voxel in the volume
 for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
-    checkered_box(voxels[frame], (0, 0, 0), (0, row_count-1, col_count-1), 246, 252)
+    volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
     
-    checkered_box(voxels[frame], (0, 0, 0), (plane_count-25, 0, col_count-1), 246, 252)
-    checkered_box(voxels[frame], (0, row_count-1, 0), (plane_count-25, row_count-1, col_count-1), 246, 252)
+    checkered_box(volume, (0, 0, 0), (0, row_count-1, col_count-1), 246, 252)
     
-    checkered_box(voxels[frame], (0, 0, 0), (plane_count-25, row_count - 1, 0), 246, 252)
-    checkered_box(voxels[frame], (0, 0, col_count - 1), (plane_count-25, row_count - 1, col_count - 1), 246, 252)
+    checkered_box(volume, (0, 0, 0), (plane_count-25, 0, col_count-1), 246, 252)
+    checkered_box(volume, (0, row_count-1, 0), (plane_count-25, row_count-1, col_count-1), 246, 252)
     
-    checkered_box(voxels[frame], (0, 50, 50), (plane_count - 1, 76, 76), 246, 217)
+    checkered_box(volume, (0, 0, 0), (plane_count-25, row_count - 1, 0), 246, 252)
+    checkered_box(volume, (0, 0, col_count - 1), (plane_count-25, row_count - 1, col_count - 1), 246, 252)
+    
+    checkered_box(volume, (0, 50, 50), (plane_count - 1, 76, 76), 246, 217)
 
     for plane in range(0, plane_count):
         for col in range(0, col_count):
@@ -83,14 +85,17 @@ for frame in range(0, frame_count):
                 if plane <= height:
                     
                     # But only if it is currently empty
-                    if voxels[frame][plane][col][row] == 0:
-                        voxels[frame][plane][col][row] = 151
+                    if volume[plane][col][row] == 0:
+                        volume[plane][col][row] = 151
+
+    # Add the new frame (volume) to the list
+    volume_list.append(volume)
     
 
 # Save the volume to disk as a MagicaVoxel file.
 print("Saving results...")
 filename = "waves.vox"
-voxbox.magicavoxel.write(voxels, filename)
+voxbox.magicavoxel.write(volume_list, filename)
 print("Done.")
 
 # Open the file in the default app, which should be MagicaVoxel. Could instead

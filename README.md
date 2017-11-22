@@ -19,8 +19,8 @@ frame_count = 30
 
 palette = generate_rainbow_colourmap()
 
-# Create a NumPy array
-voxels = np.zeros((frame_count, plane_count, col_count, row_count), dtype=np.uint8)
+# Start with an empty list of volumes
+volume_list = []
 
 # Later we will choose a material based on the height (plane) of the voxel
 palette_offset_per_plane = (len(palette) - 1.0) / plane_count
@@ -29,6 +29,8 @@ palette_offset_per_plane = (len(palette) - 1.0) / plane_count
 for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
+    
+    volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
     
     # Create a simple heightmap (could also load something from disk)
     time_step = frame / frame_count
@@ -46,13 +48,16 @@ for frame in range(0, frame_count):
                 # If the current voxel is below the
                 # heightmap then set it to be solid.
                 if plane <= height:
-                    voxels[frame][plane][col][row] = palette_offset_per_plane * plane
+                    volume[plane][col][row] = palette_offset_per_plane * plane
+                  
+    # Add the new frame (volume) to the list
+    volume_list.append(volume)
     
 
 # Save the volume to disk as a MagicaVoxel file.
 print("Saving results...")
 filename = "waves.vox"
-voxbox.magicavoxel.write(voxels, filename, palette)
+voxbox.magicavoxel.write(volume_list, filename, palette)
 print("Done.")
 ```
     

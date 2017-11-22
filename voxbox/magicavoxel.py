@@ -37,9 +37,9 @@ def write_xyzi_chunk(volume):
                     
     return write_chunk(b'XYZI', chunk_content, None)
     
-def write_pack_chunk(volume):
+def write_pack_chunk(volume_list):
     
-    chunk_content = struct.pack('i', len(volume))
+    chunk_content = struct.pack('i', len(volume_list))
     return write_chunk(b'PACK', chunk_content, None)
     
 def write_rgba_chunk(palette):
@@ -48,29 +48,27 @@ def write_rgba_chunk(palette):
     chunk_content += struct.pack('xxxx')    
     return write_chunk(b'RGBA', chunk_content, None) 
 
-def write_main_chunk(volume, palette):
+def write_main_chunk(volume_list, palette):
     
-    child_chunks  = write_pack_chunk(volume)
-    
-    if volume.ndim == 3:
+    child_chunks  = write_pack_chunk(volume_list)
+    for volume in volume_list:
         child_chunks += write_size_chunk(volume)
         child_chunks += write_xyzi_chunk(volume)
-    
-    elif volume.ndim == 4:
-        for i in range(0, len(volume)):
-            child_chunks += write_size_chunk(volume[i])
-            child_chunks += write_xyzi_chunk(volume[i])
     
     if palette is not None:
         child_chunks += write_rgba_chunk(palette)
     
     return write_chunk(b'MAIN', None, child_chunks)
     
-def write(volume, filename, palette = None):
+def write(volume_list, filename, palette = None):
+    
+    # This function expects a *list* of 3D NumPy arrays. If you only
+    # have one ( a single frame) then create a single element list.
+    assert isinstance(volume_list, list) # Note: You need a *list* of volumes
     
     data = bytearray(b'VOX ')
     data = data + struct.pack('i', 150);
-    data = data + write_main_chunk(volume, palette)
+    data = data + write_main_chunk(volume_list, palette)
     
     file = open(filename, "wb")
     file.write(data)
@@ -193,6 +191,6 @@ if __name__ == "__main__":
     voxels[0][0][0] = 255 # White
           
     filename = "test_magicavoxel_write.vox"
-    write(voxels, filename, palette)
+    write([voxels], filename, palette)
     voxbox.util.open_in_default_app(filename)
     
