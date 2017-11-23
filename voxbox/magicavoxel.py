@@ -60,11 +60,18 @@ def write_main_chunk(volume_list, palette):
     
     return write_chunk(b'MAIN', None, child_chunks)
     
+# This function expects a *list* of 3D NumPy arrays. If you only
+# have one ( a single frame) then create a single element list.
 def write(volume_list, filename, palette = None):
     
-    # This function expects a *list* of 3D NumPy arrays. If you only
-    # have one ( a single frame) then create a single element list.
-    assert isinstance(volume_list, list) # Note: You need a *list* of volumes
+    if not isinstance(volume_list, list):
+        raise TypeError("Argument 'volume_list' should be a list")
+        
+    if not all(type(volume) is np.ndarray for volume in volume_list):
+        raise TypeError("All elements of 'volume_list' must be NumPy arrays")
+        
+    if not all(volume.ndim == 3 for volume in volume_list):
+        raise TypeError("All volumes in 'volume_list' must be 3D")
     
     data = bytearray(b'VOX ')
     data = data + struct.pack('i', 150);
