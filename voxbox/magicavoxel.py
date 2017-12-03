@@ -117,6 +117,18 @@ def read_xyzi_chunk(file, volume_to_fill):
         
         (plane, col, row, index) = struct.unpack("BBBB", file.read(4))        
         volume_to_fill[plane, col, row] = index
+                      
+def read_rgba_chunk(file):
+    
+    # MagicaVoxel palette storage seems a little odd. The application allows
+    # editing of 255 entries numbered 1-255, but these get saved to disk as
+    # entries 0-254 in a 256-element array. The last element (255) appears to
+    # be dummy data and might always be zero?
+    byte_count = 4 * 256 # 256 entries with 4 bytes each
+    palette = np.fromfile(file, dtype=np.uint8, count = byte_count)
+    palette = palette.reshape((256, 4))
+    palette = np.roll(palette, 1, axis=0)
+    return palette
     
 def read_pack_chunk(chunk_content):
     
@@ -128,6 +140,7 @@ def read_main_chunk(file):
     
     print(chunk_content_size, child_chunks_size)
     
+    palette = None
     volume_list = []
     
     while True:
@@ -145,10 +158,12 @@ def read_main_chunk(file):
             volume_list.append(read_size_chunk(file))            
         elif id == b'XYZI':
             read_xyzi_chunk(file, volume_list[-1])
+        elif id == b'RGBA':
+            palette = read_rgba_chunk(file)
         else:
             file.read(chunk_content_size) # Just consume it
             
-    return volume_list
+    return volume_list, palette
             
         
     
@@ -169,8 +184,8 @@ def read(filename):
 
 if __name__ == "__main__":
     
-#    filename = "test_magicavoxel_write.vox"
-#    volume_list = read(filename)
+#    filename = "read-test.vox"
+#    volume_list, palette = read(filename)
 #    
 #    print("Origin voxel = {}".format(volume_list[0][0][0][0]))
     
