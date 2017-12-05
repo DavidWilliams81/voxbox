@@ -102,11 +102,11 @@ def read_chunk(data):
     
 def read_size_chunk(file):
 
-    (row_count, col_count, plane_count) = struct.unpack("III", file.read(12))
+    (col_count, row_count, plane_count) = struct.unpack("III", file.read(12))
     
-    print("size", row_count, col_count, plane_count)
+    print("size", col_count, row_count, plane_count)
     
-    return np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+    return np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
     
 def read_xyzi_chunk(file, volume_to_fill):
     
@@ -115,8 +115,8 @@ def read_xyzi_chunk(file, volume_to_fill):
 
     for i in range(voxel_count):
         
-        (plane, col, row, index) = struct.unpack("BBBB", file.read(4))        
-        volume_to_fill[plane, col, row] = index
+        (col, row, plane, index) = struct.unpack("BBBB", file.read(4))        
+        volume_to_fill[plane][row][col] = index
                       
 def read_rgba_chunk(file):
     
@@ -184,35 +184,32 @@ def read(filename):
 
 if __name__ == "__main__":
     
-#    filename = "read-test.vox"
-#    volume_list, palette = read(filename)
-#    
-#    print("Origin voxel = {}".format(volume_list[0][0][0][0]))
+    filename = "horse.vox"
+    volume_list, palette = read(filename)
+
+    palette[1]   = [255, 0,   0,   255] # Red
+    palette[2]   = [0,   255, 0,   255] # Green
+    palette[3]   = [0,   0,   255, 255] # Blue
+    palette[255] = [255, 255, 255, 255] # White
     
-    palette = np.zeros((256, 4), dtype=np.uint8)
-    palette[1] = [255, 0, 0, 255]
-    palette[2] = [0, 255, 0, 255]
-    palette[3] = [0, 0, 255, 255]
-    palette[255] = [255, 255, 255, 255]
+    frame_count = len(volume_list)
     
-    row_count = 40
-    col_count = 40
-    plane_count = 40
-    
-    voxels = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
-          
-    for row in range(0, row_count):
-        voxels[0][0][row] = 1; # Red
+    for frame_index, voxels in enumerate(volume_list):
+        
+        (plane_count, row_count, col_count) = voxels.shape
               
-    for col in range(0, col_count):
-        voxels[0][col][0] = 2; # Green
-              
-    for plane in range(0, plane_count):
-        voxels[plane][0][0] = 3; #Blue
-              
-    voxels[0][0][0] = 255 # White
+        for col in range(frame_index, col_count, frame_count):
+            voxels[0][0][col] = 1 # Red
+            
+        for row in range(frame_index, row_count, frame_count):
+            voxels[0][row][0] = 2 # Green
+                  
+        for plane in range(frame_index, plane_count, frame_count):
+            voxels[plane][0][0] = 3 #Blue
+                  
+        voxels[0][0][0] = 255 # White
           
     filename = "test_magicavoxel_write.vox"
-    write([voxels], filename, palette)
+    write(volume_list, filename, palette)
     voxbox.util.open_in_default_app(filename)
     
