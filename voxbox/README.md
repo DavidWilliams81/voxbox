@@ -1,0 +1,1 @@
+The house model used by this test is taken from MagicaVoxel. The source is here: https://github.com/ephtracy/voxel-model/blob/master/vox/anim/horse.vox
