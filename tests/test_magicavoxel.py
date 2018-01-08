@@ -3,7 +3,7 @@ import voxbox.util
 import voxbox.magicavoxel
 
 filename = "horse.vox"
-volume_list, palette = read(filename)
+volume_list, palette = voxbox.magicavoxel.read(filename)
 
 palette[1]   = [255, 0,   0,   255] # Red
 palette[2]   = [0,   255, 0,   255] # Green
@@ -28,5 +28,5 @@ for frame_index, voxels in enumerate(volume_list):
     voxels[0][0][0] = 255 # White
       
 filename = "test_magicavoxel_write.vox"
-write(volume_list, filename, palette)
+voxbox.magicavoxel.write(volume_list, filename, palette)
 voxbox.util.open_in_default_app(filename)
