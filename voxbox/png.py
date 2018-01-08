@@ -1,32 +1,30 @@
 import os
+import numpy as np
 
-def write_volume_list(path, volume_list, palette):
+def write_frames(path, frames, palette):
     
     os.makedirs(path, exist_ok=True)
     
-    for volume in range(0, len(volume_list)):
-        write_volume('{}/frame_{}'.format(path, volume), volume_list[volume], palette)
+    for frame_idx, frame in enumerate(frames):
+        write_frame('{}/frame_{}'.format(path, frame_idx), frame, palette)
     
-def write_volume(path, volume, palette):
+def write_frame(path, frame, palette):
 
     os.makedirs(path, exist_ok=True)
-    (plane_count, row_count, col_count) = volume.shape
+    (plane_count, row_count, col_count) = frame.shape
     
-    for plane in range(0, plane_count):
+    for plane_idx, plane in enumerate(frame):
         
         imdata = bytearray()
-        for row in range(0, row_count):
-            for col in range(0, col_count):
-                mat = volume[plane][row][col]
-                rgba = palette[mat]
-                #print(rgba)
-                imdata.append(rgba[0])
-                imdata.append(rgba[1])
-                imdata.append(rgba[2])
-                imdata.append(rgba[3])
+        
+        # Note, do we need to specify C vs. Fortran order here?
+        # https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.nditer.html
+        for mat_idx in np.nditer(plane):
+            rgba = palette[mat_idx]
+            imdata.extend(rgba)
                 
         data = write_png(imdata, col_count, row_count)
-        with open("{}/{}.png".format(path, plane), 'wb') as fd:
+        with open("{}/{}.png".format(path, plane_idx), 'wb') as fd:
             fd.write(data)
     
 
