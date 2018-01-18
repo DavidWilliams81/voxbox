@@ -1,68 +1,94 @@
 # For generating our heightmap
 import math
 import numpy as np
-
 import scipy.ndimage.filters
 
+# For creating and saving our frames
 import voxbox.geometry
-
-# For saving the result
-import voxbox.util
 import voxbox.magicavoxel
+import voxbox.util
         
 # Define the size of the volume
 row_count = 126
 col_count = 126
 plane_count = 64
-frame_count = 30
+frame_count = 1
 
-heightmap = np.zeros((frame_count, row_count, col_count))
-    
-for i in range(0, 4):
-    a = np.random.rand(frame_count, row_count, col_count)
-    octave = scipy.ndimage.filters.gaussian_filter(a, (math.pow(2.0, max(0, i-1)), math.pow(2.0, i), math.pow(2.0, i)), mode='wrap')    
+# A 3D array, which can also be considered as a 1D array of 2D heightmap data.
+# Each 2D slice will be the heightmap corresponding to a single frame.
+# It starts off with zeros and the octaves get added in one at a time.
+heightmaps = np.zeros((frame_count, row_count, col_count))
 
-    octave = octave - octave.min()
-    octave = octave / octave.max()
+noise_layer_count = 4 # The number of layers of noise we will combine
+for layer_index in range(0, noise_layer_count):
     
-    octave *= math.pow(2.0, i)
+    # Each layer starts off as random noise.
+    layers = np.random.rand(frame_count, row_count, col_count)
     
-    heightmap += octave
-    
-heightmap = heightmap - heightmap.min()
-heightmap = heightmap / heightmap.max()
+    # These sigma values control the amount of bluring in each axis. The 
+    # pow(2.0, ...) part means that each layer has twice the sigma of the
+    # previous one and so is twice as blurred. Note that we have less blurring 
+    # in the inter-frame dimension - empirically this was found to look nicer.
+    inter_pixel_sigma = math.pow(2.0, layer_index)
+    inter_frame_sigma = math.pow(2.0, max(0, layer_index-1))
+    layers = scipy.ndimage.filters.gaussian_filter(layers,
+                                                  (inter_frame_sigma,
+                                                   inter_pixel_sigma,
+                                                   inter_pixel_sigma),
+                                                  mode='wrap')    
 
-heightmap -= 0.5
-heightmap *= 0.2
-heightmap += 0.5
+    # Normalise values to lie between zero and one.
+    layers = layers - layers.min()
+    layers = layers / layers.max()
+    
+    # Scale the values so that layers which have been blurred less
+    # (high-frequency details) contribute less to the overall heightmap.
+    layers *= math.pow(2.0, layer_index)
+    
+    # Combine the layer
+    heightmaps += layers
+    
+# Normalise the heightmaps to between zero and one.
+heightmaps = heightmaps - heightmaps.min()
+heightmaps = heightmaps / heightmaps.max()
 
-# Start with an empty list of volumes
-volume_list = []
+# Bring the range of heights to 0.4 to 0.6. This means the troughs of the waves
+# will end up at 40% of the volume height with peaks at 60% of the height.
+heightmaps -= 0.5
+heightmaps *= 0.2
+heightmaps += 0.5
+
+# Now that we have our heightmaps we are ready to start 
+# building our scene. Start with an empty list of frames.
+frame_list = []
 
 # For each voxel in the volume
 for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
+    # Each frame is a 3D volume which starts off empty
     volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
     
-    voxbox.geometry.draw_box(volume, (0, 0, 0), (0, row_count-1, col_count-1), 246, 252)
-    
+    # Draw the walls and tower in the middle. This part isn't importand
+    # for understanding how the water works. You could instead load 
+    # in an existing MagicaVoxel scene and add water to that.
+    voxbox.geometry.draw_box(volume, (0, 0, 0), (0, row_count-1, col_count-1), 246, 252)    
     voxbox.geometry.draw_box(volume, (0, 0, 0), (plane_count-25, 0, col_count-1), 246, 252)
-    voxbox.geometry.draw_box(volume, (0, row_count-1, 0), (plane_count-25, row_count-1, col_count-1), 246, 252)
-    
+    voxbox.geometry.draw_box(volume, (0, row_count-1, 0), (plane_count-25, row_count-1, col_count-1), 246, 252)    
     voxbox.geometry.draw_box(volume, (0, 0, 0), (plane_count-25, row_count - 1, 0), 246, 252)
-    voxbox.geometry.draw_box(volume, (0, 0, col_count - 1), (plane_count-25, row_count - 1, col_count - 1), 246, 252)
-    
+    voxbox.geometry.draw_box(volume, (0, 0, col_count - 1), (plane_count-25, row_count - 1, col_count - 1), 246, 252)    
     voxbox.geometry.draw_box(volume, (0, 50, 50), (plane_count - 1, 76, 76), 246, 217)
 
+    # Iterate over each voxel and check if it is below the level
+    # defined by the heightmap. If so it represents water.
     for plane in range(0, plane_count):
         for col in range(0, col_count):
             for row in range(0, row_count):
                 
                 # Get the height from the heightmap, and
                 # scale to the height of the volume
-                height = heightmap[frame][col][row]
+                height = heightmaps[frame][col][row]
                 height *= plane_count
                 
                 # If the current voxel is below the
@@ -74,13 +100,13 @@ for frame in range(0, frame_count):
                         volume[plane][col][row] = 151
 
     # Add the new frame (volume) to the list
-    volume_list.append(volume)
+    frame_list.append(volume)
     
 
 # Save the volume to disk as a MagicaVoxel file.
 print("Saving results...")
 filename = "waves.vox"
-voxbox.magicavoxel.write(volume_list, filename)
+voxbox.magicavoxel.write(frame_list, filename)
 print("Done.")
 
 # Open the file in the default app, which should be MagicaVoxel. Could instead
