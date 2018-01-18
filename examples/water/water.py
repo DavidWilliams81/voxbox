@@ -12,7 +12,7 @@ import voxbox.util
 row_count = 126
 col_count = 126
 plane_count = 64
-frame_count = 1
+frame_count = 30
 
 # A 3D array, which can also be considered as a 1D array of 2D heightmap data.
 # Each 2D slice will be the heightmap corresponding to a single frame.
