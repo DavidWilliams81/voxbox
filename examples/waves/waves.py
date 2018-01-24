@@ -12,10 +12,10 @@ import voxbox.magicavoxel
 """
 Generates an animated heightmap from overlapping sine functions.
 """
-def generate_waves_heightmap(row_count, col_count, timestep):
+def generate_waves_heightmap(width, height, timestep):
     
     freq = 0.1 # Controls spacing between waves.   
-    result = np.zeros([col_count, row_count])
+    result = np.zeros([height, width])
     
     # Input timestep is in the range 0.0 to 1.0. Map this to zero to 2*pi and
     # pass through sine function to give a vertical scaling factor which to 
@@ -23,18 +23,18 @@ def generate_waves_heightmap(row_count, col_count, timestep):
     vertical_scale = math.sin(timestep * math.pi * 2.0)
     
     # For each pixel in the 2D heightmap
-    for col in range(0, col_count):
-        for row in range(0, row_count):
+    for row in range(0, height):
+        for col in range(0, width):
             
             # Generate two overlapping sine waves as our base output
-            result[col][row] = math.sin(row * freq) * math.sin(col * freq)
+            result[row][col] = math.sin(row * freq) * math.sin(col * freq)
             
             # Scale according to the timestep to animate it.
-            result[col][row] *= vertical_scale
+            result[row][col] *= vertical_scale
             
             # Output is in the range -1.0 to 1.0, scale to range 0.0 to 1.0
-            result[col][row] += 1.0
-            result[col][row] *= 0.5
+            result[row][col] += 1.0
+            result[row][col] *= 0.5
                   
     return result
 
@@ -56,9 +56,9 @@ def generate_rainbow_colourmap():
     return palette
         
 # Define the size of the volume
-row_count = 126
-col_count = 126
-plane_count = 64
+col_count = 126 # Width
+row_count = 126 # Height
+plane_count = 64 # Depth
 frame_count = 30
 
 palette = generate_rainbow_colourmap()
@@ -74,25 +74,25 @@ for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
-    volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+    volume = np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
     
     # Create a simple heightmap (could also load something from disk)
     time_step = frame / frame_count
-    heightmap = generate_waves_heightmap(row_count, col_count, time_step)
+    heightmap = generate_waves_heightmap(col_count, row_count, time_step)
 
     for plane in range(0, plane_count):
-        for col in range(0, col_count):
-            for row in range(0, row_count):
+        for row in range(0, row_count):
+            for col in range(0, col_count):
                 
                 # Get the height from the heightmap, and
                 # scale to the height of the volume
-                height = heightmap[col, row]
+                height = heightmap[row][col]
                 height *= plane_count
                 
                 # If the current voxel is below the
                 # heightmap then set it to be solid.
                 if plane <= height:
-                    volume[plane][col][row] = palette_offset_per_plane * plane
+                    volume[plane][row][col] = palette_offset_per_plane * plane
                   
     # Add the new frame (volume) to the list
     volume_list.append(volume)

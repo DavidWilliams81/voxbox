@@ -12,9 +12,9 @@ The following snippet shows how to export a NumPy array as a MagicaVoxel file. S
 
 ```python
 # Define the size of the volume
-row_count = 126
-col_count = 126
-plane_count = 64
+col_count = 126 # Width
+row_count = 126 # Height
+plane_count = 64 # Depth
 frame_count = 30
 
 palette = generate_rainbow_colourmap()
@@ -30,25 +30,25 @@ for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
-    volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+    volume = np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
     
     # Create a simple heightmap (could also load something from disk)
     time_step = frame / frame_count
-    heightmap = generate_waves_heightmap(row_count, col_count, time_step)
+    heightmap = generate_waves_heightmap(col_count, row_count, time_step)
 
     for plane in range(0, plane_count):
-        for col in range(0, col_count):
-            for row in range(0, row_count):
+        for row in range(0, row_count):
+            for col in range(0, col_count):
                 
                 # Get the height from the heightmap, and
                 # scale to the height of the volume
-                height = heightmap[col, row]
+                height = heightmap[row][col]
                 height *= plane_count
                 
                 # If the current voxel is below the
                 # heightmap then set it to be solid.
                 if plane <= height:
-                    volume[plane][col][row] = palette_offset_per_plane * plane
+                    volume[plane][row][col] = palette_offset_per_plane * plane
                   
     # Add the new frame (volume) to the list
     volume_list.append(volume)

@@ -62,13 +62,17 @@ heightmaps += 0.5
 # building our scene. Start with an empty list of frames.
 frame_list = []
 
+# Materials in MagicaVoxel default palette.
+empty_material_index = 0
+light_blue_material_index = 151
+
 # For each voxel in the volume
 for frame in range(0, frame_count):
     
     print("Generating frame {} of {}...".format(frame + 1, frame_count))
     
     # Each frame is a 3D volume which starts off empty
-    volume = np.zeros((plane_count, col_count, row_count), dtype=np.uint8)
+    volume = np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
     
     # Draw the walls and tower in the middle. This part isn't importand
     # for understanding how the water works. You could instead load 
@@ -83,12 +87,12 @@ for frame in range(0, frame_count):
     # Iterate over each voxel and check if it is below the level
     # defined by the heightmap. If so it represents water.
     for plane in range(0, plane_count):
-        for col in range(0, col_count):
-            for row in range(0, row_count):
+        for row in range(0, row_count):
+            for col in range(0, col_count):
                 
                 # Get the height from the heightmap, and
                 # scale to the height of the volume
-                height = heightmaps[frame][col][row]
+                height = heightmaps[frame][row][col]
                 height *= plane_count
                 
                 # If the current voxel is below the
@@ -96,8 +100,8 @@ for frame in range(0, frame_count):
                 if plane <= height:
                     
                     # But only if it is currently empty
-                    if volume[plane][col][row] == 0:
-                        volume[plane][col][row] = 151
+                    if volume[plane][row][col] == empty_material_index:
+                        volume[plane][row][col] = light_blue_material_index
 
     # Add the new frame (volume) to the list
     frame_list.append(volume)
@@ -105,7 +109,7 @@ for frame in range(0, frame_count):
 
 # Save the volume to disk as a MagicaVoxel file.
 print("Saving results...")
-filename = "waves.vox"
+filename = "water.vox"
 voxbox.magicavoxel.write(frame_list, filename)
 print("Done.")
 
