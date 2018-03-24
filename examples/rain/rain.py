@@ -19,7 +19,7 @@ blue_noise_data = blue_noise_data.reshape((64,64,64))
 random.seed(12345)  
 
 frame_count = 10
-drop_count = 10000
+drop_count = 200
 drop_length = 5
 drop_speed = 3
 
@@ -57,7 +57,7 @@ for col in range(rain_volume.shape[2]):
     for row in range(0,rain_volume.shape[1]):
         for plane in range(0,rain_volume.shape[0]):
             
-            if blue_noise_data[plane%64][row%64][col%64] < 1000:
+            if blue_noise_data[plane%64][row%64][col%64] < drop_count:
                 rain_volume[plane][row][col] = 255
             
 for i in range(drop_length - 1):
