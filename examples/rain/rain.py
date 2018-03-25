@@ -21,10 +21,10 @@ blue_noise_data = blue_noise_data.reshape((64,64,64))
 
 random.seed(12345)  
 
-frame_count = 5
+frame_count = 30
 drop_count = 200
-drop_length = 5
-drop_speed = 3
+drop_length = 4
+drop_speed = 2
 
 load_from_file = False
 
