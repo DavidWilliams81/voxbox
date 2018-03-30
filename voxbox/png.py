@@ -23,11 +23,11 @@ def find_nearest_colour_index(in_colour, palette):
         
         
         
-        dist = r_diff + g_diff + b_diff
+        dist = math.sqrt(r_diff * r_diff + g_diff * g_diff + b_diff * b_diff)
         
         if dist < min_dist:
             
-            dist = min_dist
+            min_dist = dist
             nearest_colour_index = index
             
     return nearest_colour_index
