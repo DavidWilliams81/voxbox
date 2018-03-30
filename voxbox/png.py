@@ -1,6 +1,40 @@
 import os
 import numpy as np
 
+from os import listdir
+from skimage import io
+
+def read_frames(path, palette):
+    
+    images = []
+    
+    for filename in listdir(path):
+        
+        if filename.endswith('.png'):
+            
+            images.append(io.imread(path + filename))
+            
+    # Should really test that all images are the same size.
+    
+    col_count = images[0].shape[0]
+    row_count = images[0].shape[1]
+    plane_count = len(images)
+    
+    volume = np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
+    
+    for plane in range(plane_count):
+        for row in range(row_count):
+            for col in range(col_count):
+                pixel = images[plane][row][col]
+                
+                if(pixel[3] > 0): # Alpha
+                    
+                    volume[plane][row][col] = 1
+                
+    return volume
+    
+    
+
 def write_frames(path, frames, palette):
     
     os.makedirs(path, exist_ok=True)
@@ -51,3 +85,14 @@ def write_png(buf, width, height):
         png_pack(b'IHDR', struct.pack("!2I5B", width, height, 8, 6, 0, 0, 0)),
         png_pack(b'IDAT', zlib.compress(raw_data, 9)),
         png_pack(b'IEND', b'')])
+    
+import magicavoxel
+import voxbox.magicavoxel
+
+palette = magicavoxel.default_palette    
+
+volume = read_frames("C:/code/cubiquity-for-unity3d/Assets/Cubiquity/CubiquitySDK/Windows/x86-64/", palette)
+
+filename = "rain.vox"
+voxbox.magicavoxel.write([volume], filename, palette)
+voxbox.util.open_in_default_app(filename)
