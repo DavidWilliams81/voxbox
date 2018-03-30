@@ -31,6 +31,18 @@ def find_nearest_colour_index(in_colour, palette):
             nearest_colour_index = index
             
     return nearest_colour_index
+
+def read_palette(path):
+    
+    image = io.imread("C:/code/voxbox/hls.png")
+    
+    image = image.reshape((256, 3))
+    
+    palette = np.full((256, 4), 255, dtype=np.uint8)
+    
+    palette[1:,:-1] = image[:-1]
+    
+    return palette
             
 
 def read_frames(path, palette):
@@ -61,7 +73,10 @@ def read_frames(path, palette):
                 
                 if(pixel[3] > 0): # Alpha
                 
+                    #if row < 10:
                     nearest_colour_index = find_nearest_colour_index(pixel, palette)
+                    #else:
+                        #nearest_colour_index = 1
                     
                     volume[plane][row][col] = nearest_colour_index
                 
@@ -123,7 +138,9 @@ def write_png(buf, width, height):
 import magicavoxel
 import voxbox.magicavoxel
 
-palette = magicavoxel.default_palette    
+#palette = magicavoxel.default_palette    
+
+palette = read_palette("C:/code/voxbox/hls.png")
 
 volume = read_frames("C:/code/cubiquity-for-unity3d/Assets/Cubiquity/CubiquitySDK/Windows/x86-64/", palette)
 
