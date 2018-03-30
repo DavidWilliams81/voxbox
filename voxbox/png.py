@@ -1,8 +1,37 @@
 import os
 import numpy as np
 
+import math
+
 from os import listdir
 from skimage import io
+
+def find_nearest_colour_index(in_colour, palette):
+    
+    nearest_colour_index = 0
+    min_dist = 1000000000.0
+    
+    for index,pal_colour in enumerate(palette):
+        
+        r_diff = float(in_colour[0]) - float(pal_colour[0])
+        g_diff = float(in_colour[1]) - float(pal_colour[1])
+        b_diff = float(in_colour[2]) - float(pal_colour[2])
+        
+        #print(r_diff)
+        #print(g_diff)
+        #print(b_diff)
+        
+        
+        
+        dist = r_diff + g_diff + b_diff
+        
+        if dist < min_dist:
+            
+            dist = min_dist
+            nearest_colour_index = index
+            
+    return nearest_colour_index
+            
 
 def read_frames(path, palette):
     
@@ -12,7 +41,9 @@ def read_frames(path, palette):
         
         if filename.endswith('.png'):
             
-            images.append(io.imread(path + filename))
+            image = io.imread(path + filename)
+            
+            images.append(image)
             
     # Should really test that all images are the same size.
     
@@ -23,13 +54,16 @@ def read_frames(path, palette):
     volume = np.zeros((plane_count, row_count, col_count), dtype=np.uint8)
     
     for plane in range(plane_count):
+        print(plane)
         for row in range(row_count):
             for col in range(col_count):
                 pixel = images[plane][row][col]
                 
                 if(pixel[3] > 0): # Alpha
+                
+                    nearest_colour_index = find_nearest_colour_index(pixel, palette)
                     
-                    volume[plane][row][col] = 1
+                    volume[plane][row][col] = nearest_colour_index
                 
     return volume
     
