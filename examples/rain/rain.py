@@ -15,7 +15,7 @@ import time
 
 import zipfile
 blue_noise_zip = zipfile.ZipFile('blue_noise.zip', 'r')
-HDR_L_raw = archive.read('HDR_L.raw')
+HDR_L_raw = blue_noise_zip.read('HDR_L.raw')
 
 blue_noise_data = np.frombuffer(HDR_L_raw, dtype=np.uint32, offset=4*6)
 blue_noise_data = blue_noise_data.reshape((64,64,64))
