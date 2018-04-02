@@ -9,7 +9,7 @@ import voxbox.magicavoxel
 import voxbox.util
 
 # Properties defining our rain effect.
-drop_count = 1000 # Rain density
+rain_density = 500 # Higher values mean more rain
 drop_length = 4 # In voxels
 drop_speed = 2 # In voxels moved per frame
 frame_count = 30 # Number of frames
@@ -52,28 +52,41 @@ else:
     palette = voxbox.magicavoxel.default_palette
 
 
-rain_volume = np.zeros((frame_count * drop_speed, # Planes
-                        src_volume.shape[1],      # Rows
-                        src_volume.shape[2]),     # Cols
-                        dtype=np.uint8)           # Voxel type
+# Initialise with thresholded version of blue noise
+rain_volume = np.less(blue_noise_data, rain_density)
 
-for col in range(rain_volume.shape[2]):
-    for row in range(0,rain_volume.shape[1]):
-        for plane in range(0,rain_volume.shape[0]):
-            
-            if blue_noise_data[plane%64][row%64][col%64] < drop_count:
-                rain_volume[plane][row][col] = 255
-            
-for i in range(drop_length - 1):
-    for col in range(rain_volume.shape[2]):
-        for row in range(0,rain_volume.shape[1]):
-            for plane in range(0,rain_volume.shape[0]):
-                if(rain_volume[(plane+1)%rain_volume.shape[0]][row][col]) > 0:
-                    rain_volume[plane][row][col] = 255
-                               
-tiles = src_volume.shape[0] // rain_volume.shape[0] + 1
+# Elongate the rain drops
+for i in range(drop_length - 1):    
+    rain_volume = np.logical_or(rain_volume, np.roll(rain_volume, 1, axis=0))
+
+tiles = np.floor_divide(src_volume.shape, rain_volume.shape) + 1
                         
-rain_volume = np.tile(rain_volume,(tiles, 1, 1))
+rain_volume = np.tile(rain_volume,(1, tiles[1], tiles[2]))
+
+rain_volume = rain_volume[:frame_count * drop_speed,:,:]
+
+tiles = np.floor_divide(src_volume.shape, rain_volume.shape) + 1
+
+rain_volume = np.tile(rain_volume,(tiles[0], 1, 1))
+
+# Fill the rain volume by thresholding the 
+#for col in range(rain_volume.shape[2]):
+#    for row in range(0,rain_volume.shape[1]):
+#        for plane in range(0,rain_volume.shape[0]):
+#            
+#            if blue_noise_data[plane%64][row%64][col%64] < drop_count:
+#                rain_volume[plane][row][col] = True
+#            
+#for i in range(drop_length - 1):
+#    for col in range(rain_volume.shape[2]):
+#        for row in range(0,rain_volume.shape[1]):
+#            for plane in range(0,rain_volume.shape[0]):
+#                if(rain_volume[(plane+1)%rain_volume.shape[0]][row][col]):
+#                    rain_volume[plane][row][col] = True
+#                               
+#tiles = src_volume.shape[0] // rain_volume.shape[0] + 1
+#                        
+#rain_volume = np.tile(rain_volume,(tiles, 1, 1))
 
 model_volumes = []
 
@@ -99,11 +112,11 @@ for frame in range(frame_count):
             for plane in reversed(range(model_volume.shape[0])): 
                 
                 if rain_mask[plane][row][col]:  
-                    if rain_volume[plane][row][col] == 255:
+                    if rain_volume[plane][row][col]:
                         model_volume[plane][row][col] = 255
                 else:
                     
-                    if rain_volume[plane][row][col] == 255:
+                    if rain_volume[plane][row][col]:
                         if plane < 120:
                             if row > 0 and row < 71 and col > 0 and col < 71:
                                 
