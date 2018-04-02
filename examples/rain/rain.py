@@ -1,41 +1,38 @@
 # -*- coding: utf-8 -*-
-import voxbox.geometry
-import voxbox.util
-import voxbox.magicavoxel
-
-import matplotlib.pyplot as plt
+import os
+import zipfile
 
 import numpy as np
 
-import random
+import voxbox.geometry
+import voxbox.magicavoxel
+import voxbox.util
 
-import os
+# Properties defining our rain effect.
+drop_count = 1000 # Rain density
+drop_length = 4 # In voxels
+drop_speed = 2 # In voxels moved per frame
+frame_count = 30 # Number of frames
 
-import time
-
-import zipfile
+# Load 3D Blue Noise texture (see http://momentsingraphics.de/?p=148)
 blue_noise_zip = zipfile.ZipFile('blue_noise.zip', 'r')
 HDR_L_raw = blue_noise_zip.read('HDR_L.raw')
+blue_noise_start = 6*4 # Skip header of 6 ints
+blue_noise_data = np.frombuffer(HDR_L_raw, dtype=np.uint32, offset=blue_noise_start)
+blue_noise_data = blue_noise_data.reshape((64,64,64)) # Used texture has known size.
 
-blue_noise_data = np.frombuffer(HDR_L_raw, dtype=np.uint32, offset=4*6)
-blue_noise_data = blue_noise_data.reshape((64,64,64))
-
-random.seed(12345)  
-
-frame_count = 30
-drop_count = 200
-drop_length = 4
-drop_speed = 2
-
+# Create a 3D scene to which we will add the rain effect.
 load_from_file = False
-
 if load_from_file:
     
-    filename = "C:/Users/David/Downloads/MagicaVoxel-0.98.2-win/MagicaVoxel-0.98.2-win/vox/monu10.vox"
+    # Load a scene from disk
+    filename = "/path/to/scene.vox"
     volume_list, palette = voxbox.magicavoxel.read(filename)
     src_volume = volume_list[0]
     
 else:
+    
+    # Generate s simple sccene for testing purposes.
     src_volume = np.zeros((126, 126, 126), dtype=np.uint8) 
     
     # Floor
@@ -55,7 +52,10 @@ else:
     palette = voxbox.magicavoxel.default_palette
 
 
-rain_volume = np.zeros((frame_count * drop_speed, src_volume.shape[1],src_volume.shape[2]), dtype=np.uint8)
+rain_volume = np.zeros((frame_count * drop_speed, # Planes
+                        src_volume.shape[1],      # Rows
+                        src_volume.shape[2]),     # Cols
+                        dtype=np.uint8)           # Voxel type
 
 for col in range(rain_volume.shape[2]):
     for row in range(0,rain_volume.shape[1]):
@@ -76,8 +76,6 @@ tiles = src_volume.shape[0] // rain_volume.shape[0] + 1
 rain_volume = np.tile(rain_volume,(tiles, 1, 1))
 
 model_volumes = []
-
-t0 = time.time()
 
 rain_mask = np.zeros(src_volume.shape, dtype=np.bool)
 
@@ -107,7 +105,7 @@ for frame in range(frame_count):
                     
                     if rain_volume[plane][row][col] == 255:
                         if plane < 120:
-                            if row > 0 and row < 125 and col > 0 and col < 125:
+                            if row > 0 and row < 71 and col > 0 and col < 71:
                                 
                                 model_volume[plane+1][row-1][col-1] = 255
                                 model_volume[plane+1][row-1][col+0] = 255
@@ -123,22 +121,12 @@ for frame in range(frame_count):
                     
                     break
                     
-#                if rain_mask[plane][row][col] == 1:
-#                    if rain_volume[plane][row][col] == 255:
-#                        if plane > 0:
-#                            if row > 0 and row < 125 and col > 0 and col < 125:
-#                                model_volume[plane-1][row-1][col-1] = 255
-#                                model_volume[plane-1][row-1][col+1] = 255
-#                                model_volume[plane-1][row+1][col-1] = 255
-#                                model_volume[plane-1][row+1][col+1] = 255
                 
     model_volumes.append(model_volume)
     
     rain_volume = np.roll(rain_volume, -drop_speed, axis=0)
 
-t1 = time.time()
-
-print("Done in {}".format(t1-t0))
+print("Done")
       
 filename = "rain.vox"
 voxbox.magicavoxel.write(model_volumes, filename, palette)
