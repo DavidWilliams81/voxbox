@@ -8,8 +8,6 @@ import voxbox.geometry
 import voxbox.magicavoxel
 import voxbox.util
 
-import timeit
-
 def tile_array_to_size(input_array, output_size):
     
     # x.take(range(0,5),mode='wrap', axis=0).take(range(0,5),mode='wrap',axis=1)
@@ -48,7 +46,7 @@ if load_from_file:
     
 else:
     
-    # Generate s simple sccene for testing purposes.
+    # Generate s simple scene for testing purposes.
     src_volume = np.zeros((126, 126, 126), dtype=np.uint8) 
     
     # Floor
@@ -79,55 +77,72 @@ rain_volume = tile_array_to_size(rain_volume, (frame_count * drop_speed, rain_vo
 # Elongate the rain drops (with wrapping so the rain volume is tileable)
 for i in range(drop_length - 1):    
     rain_volume = np.logical_or(rain_volume, np.roll(rain_volume, 1, axis=0))
-
-model_volumes = []
-                     
+               
+# Indicates empty voxels in the scene (where rain can potentially be drawn)
 rain_mask = np.equal(src_volume, 0)
 
-start_time = timeit.default_timer()
+# The output frames we build
+output_volumes = []
 
 for frame in range(frame_count):
     
     print("Generating frame {}".format(frame))
-    model_volume = np.copy(src_volume)
-
     
-    for col in range(model_volume.shape[2]):
-        for row in range(model_volume.shape[1]):
-            for plane in reversed(range(model_volume.shape[0])): 
+    # Copy source to output
+    output_volume = np.copy(src_volume)
+    
+    # Note: The code below is not well optimised. I'm sure we could make it
+    # faster by using various built-in NumPy functions to tile/broadcast the
+    # rain array, mask it, etc. Also the rain_mask could probably be
+    # calculated so as to mask out voxels below the surface, as well as the
+    # surface itself. But the code is good enough for now.
+
+    # Iterate over each column of the output scene
+    for col in range(output_volume.shape[2]):
+        for row in range(output_volume.shape[1]):
+            
+            # Start at the top of the column and work down (so that
+            # we can stop if we hit a solid voxel that blocks rain)
+            for plane in reversed(range(output_volume.shape[0])): 
                 
-                if rain_mask[plane][row][col]:  
+                # If we have an empty space where we can draw rain...
+                if rain_mask[plane][row][col]:
+                    # Check if there is rain to draw (using % to wrap)
                     if rain_volume[plane%60][row%64][col%64]:
-                        model_volume[plane][row][col] = 255
+                        # Draw the rain voxel
+                        output_volume[plane][row][col] = 255
+                                    
+                # If we have reached a surface...
                 else:
                     
+                    # Check if thre is a rain drop hitting that surface
                     if rain_volume[plane%60][row%64][col%64]:
+                        
+                        # Avoid writing splashes outside the scene.
                         if plane < 120:
                             if row > 0 and row < 71 and col > 0 and col < 71:
                                 
-                                model_volume[plane+1][row-1][col-1] = 255
-                                model_volume[plane+1][row-1][col+0] = 255
-                                model_volume[plane+1][row-1][col+1] = 255
+                                output_volume[plane+1][row-1][col-1] = 255
+                                output_volume[plane+1][row-1][col+0] = 255
+                                output_volume[plane+1][row-1][col+1] = 255
                                             
-                                model_volume[plane+1][row+0][col-1] = 255
-                                #model_volume[plane+1][row+0][col+0] = 255
-                                model_volume[plane+1][row+0][col+1] = 255
+                                output_volume[plane+1][row+0][col-1] = 255
+                                #output_volume[plane+1][row+0][col+0] = 255
+                                output_volume[plane+1][row+0][col+1] = 255
                                             
-                                model_volume[plane+1][row+1][col-1] = 255
-                                model_volume[plane+1][row+1][col+0] = 255
-                                model_volume[plane+1][row+1][col+1] = 255
+                                output_volume[plane+1][row+1][col-1] = 255
+                                output_volume[plane+1][row+1][col+0] = 255
+                                output_volume[plane+1][row+1][col+1] = 255
                     
-                    break
-                    
+                    # Have hit a surface so we can stop processing this column
+                    break                    
                 
-    model_volumes.append(model_volume)
+    output_volumes.append(output_volume)
     
     rain_volume = np.roll(rain_volume, -drop_speed, axis=0)
-    
-elapsed = timeit.default_timer() - start_time
 
-print("Done in {} seconds".format(elapsed))
+print("Done")
       
 filename = "rain.vox"
-voxbox.magicavoxel.write(model_volumes, filename, palette)
+voxbox.magicavoxel.write(output_volumes, filename, palette)
 voxbox.util.open_in_default_app(filename)
