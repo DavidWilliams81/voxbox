@@ -84,6 +84,8 @@ rain_mask = np.equal(src_volume, 0)
 # The output frames we build
 output_volumes = []
 
+rain_material = 255
+
 for frame in range(frame_count):
     
     print("Generating frame {}".format(frame))
@@ -105,34 +107,40 @@ for frame in range(frame_count):
             # we can stop if we hit a solid voxel that blocks rain)
             for plane in reversed(range(output_volume.shape[0])): 
                 
+                # Wrap rain volume
+                rain_volume_plane = plane % rain_volume.shape[0]
+                rain_volume_row = row % rain_volume.shape[1]
+                rain_volume_col = col % rain_volume.shape[2]
+                
                 # If we have an empty space where we can draw rain...
                 if rain_mask[plane][row][col]:
-                    # Check if there is rain to draw (using % to wrap)
-                    if rain_volume[plane%60][row%64][col%64]:
+                    # Check if there is rain to draw
+                    if rain_volume[rain_volume_plane][rain_volume_row][rain_volume_col]:
                         # Draw the rain voxel
-                        output_volume[plane][row][col] = 255
+                        output_volume[plane][row][col] = rain_material
                                     
                 # If we have reached a surface...
                 else:
                     
                     # Check if thre is a rain drop hitting that surface
-                    if rain_volume[plane%60][row%64][col%64]:
+                    if rain_volume[rain_volume_plane][rain_volume_row][rain_volume_col]:
                         
                         # Avoid writing splashes outside the scene.
                         if plane < 120:
                             if row > 0 and row < 71 and col > 0 and col < 71:
                                 
-                                output_volume[plane+1][row-1][col-1] = 255
-                                output_volume[plane+1][row-1][col+0] = 255
-                                output_volume[plane+1][row-1][col+1] = 255
+                                # Draw the splash into surrounding voxels.
+                                output_volume[plane+1][row-1][col-1] = rain_material
+                                output_volume[plane+1][row-1][col+0] = rain_material
+                                output_volume[plane+1][row-1][col+1] = rain_material
                                             
-                                output_volume[plane+1][row+0][col-1] = 255
-                                #output_volume[plane+1][row+0][col+0] = 255
-                                output_volume[plane+1][row+0][col+1] = 255
+                                output_volume[plane+1][row+0][col-1] = rain_material
+                                #output_volume[plane+1][row+0][col+0] = rain_material
+                                output_volume[plane+1][row+0][col+1] = rain_material
                                             
-                                output_volume[plane+1][row+1][col-1] = 255
-                                output_volume[plane+1][row+1][col+0] = 255
-                                output_volume[plane+1][row+1][col+1] = 255
+                                output_volume[plane+1][row+1][col-1] = rain_material
+                                output_volume[plane+1][row+1][col+0] = rain_material
+                                output_volume[plane+1][row+1][col+1] = rain_material
                     
                     # Have hit a surface so we can stop processing this column
                     break                    
