@@ -10,8 +10,6 @@ import voxbox.util
 
 def tile_array_to_size(input_array, output_size):
     
-    # x.take(range(0,5),mode='wrap', axis=0).take(range(0,5),mode='wrap',axis=1)
-    
     # Find how many times we need to tile out input to
     # be *at least* as big as the desired output size.
     tile_counts = np.floor_divide(output_size, input_array.shape) + 1
