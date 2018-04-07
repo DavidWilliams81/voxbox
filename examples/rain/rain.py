@@ -8,6 +8,8 @@ import voxbox.geometry
 import voxbox.magicavoxel
 import voxbox.util
 
+import timeit
+
 def tile_array_to_size(input_array, output_size):
     
     # x.take(range(0,5),mode='wrap', axis=0).take(range(0,5),mode='wrap',axis=1)
@@ -68,10 +70,6 @@ else:
 
 # Initialise with thresholded version of blue noise
 rain_volume = np.less(blue_noise_data, rain_density)
-    
-# Crop/duplicate vertically as required to ensure that the rain volume will
-# tile for the specified number of frames and for the given rain speed.
-# The horiozontal dimensions are not changed.
 
 # Make the rain volume have a height such that it will tile vertically for the 
 # given rain speed and frame count. The output may be taller or shorter than
@@ -82,24 +80,11 @@ rain_volume = tile_array_to_size(rain_volume, (frame_count * drop_speed, rain_vo
 for i in range(drop_length - 1):    
     rain_volume = np.logical_or(rain_volume, np.roll(rain_volume, 1, axis=0))
 
-# Now make the rain volume the same size as the source volume. This will
-# probably involve duplicating it, but could involve cropping for small inputs.
-#rain_volume = tile_array_to_size(rain_volume, src_volume.shape)
-
-
-
 model_volumes = []
+                     
+rain_mask = np.equal(src_volume, 0)
 
-rain_mask = np.zeros(src_volume.shape, dtype=np.bool)
-
-for col in range(src_volume.shape[2]):
-    for row in range(src_volume.shape[1]):
-        for plane in reversed(range(src_volume.shape[0])):
-            
-            if(src_volume[plane][row][col]) > 0:
-                break
-            
-            rain_mask[plane][row][col] = True
+start_time = timeit.default_timer()
 
 for frame in range(frame_count):
     
@@ -138,8 +123,10 @@ for frame in range(frame_count):
     model_volumes.append(model_volume)
     
     rain_volume = np.roll(rain_volume, -drop_speed, axis=0)
+    
+elapsed = timeit.default_timer() - start_time
 
-print("Done")
+print("Done in {} seconds".format(elapsed))
       
 filename = "rain.vox"
 voxbox.magicavoxel.write(model_volumes, filename, palette)
