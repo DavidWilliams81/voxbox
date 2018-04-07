@@ -126,21 +126,22 @@ for frame in range(frame_count):
                     if rain_volume[rain_volume_plane][rain_volume_row][rain_volume_col]:
                         
                         # Avoid writing splashes outside the scene.
-                        if plane < 120:
-                            if row > 0 and row < 71 and col > 0 and col < 71:
+                        if (plane < output_volume.shape[0] - 1 and
+                            row > 0 and row < output_volume.shape[1] - 1 and
+                            col > 0 and col < output_volume.shape[2] - 1):
                                 
-                                # Draw the splash into surrounding voxels.
-                                output_volume[plane+1][row-1][col-1] = rain_material
-                                output_volume[plane+1][row-1][col+0] = rain_material
-                                output_volume[plane+1][row-1][col+1] = rain_material
-                                            
-                                output_volume[plane+1][row+0][col-1] = rain_material
-                                #output_volume[plane+1][row+0][col+0] = rain_material
-                                output_volume[plane+1][row+0][col+1] = rain_material
-                                            
-                                output_volume[plane+1][row+1][col-1] = rain_material
-                                output_volume[plane+1][row+1][col+0] = rain_material
-                                output_volume[plane+1][row+1][col+1] = rain_material
+                            # Draw the splash into surrounding voxels.
+                            output_volume[plane+1][row-1][col-1] = rain_material
+                            output_volume[plane+1][row-1][col+0] = rain_material
+                            output_volume[plane+1][row-1][col+1] = rain_material
+                                        
+                            output_volume[plane+1][row+0][col-1] = rain_material
+                            #output_volume[plane+1][row+0][col+0] = rain_material
+                            output_volume[plane+1][row+0][col+1] = rain_material
+                                        
+                            output_volume[plane+1][row+1][col-1] = rain_material
+                            output_volume[plane+1][row+1][col+0] = rain_material
+                            output_volume[plane+1][row+1][col+1] = rain_material
                     
                     # Have hit a surface so we can stop processing this column
                     break                    
