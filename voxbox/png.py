@@ -135,15 +135,14 @@ def write_png(buf, width, height):
         png_pack(b'IDAT', zlib.compress(raw_data, 9)),
         png_pack(b'IEND', b'')])
     
-import magicavoxel
 import voxbox.magicavoxel
 
 #palette = magicavoxel.default_palette    
 
-palette = read_palette("C:/code/voxbox/hls.png")
-
-volume = read_frames("C:/code/cubiquity-for-unity3d/Assets/Cubiquity/CubiquitySDK/Windows/x86-64/", palette)
-
-filename = "rain.vox"
-voxbox.magicavoxel.write([volume], filename, palette)
-voxbox.util.open_in_default_app(filename)
+#palette = read_palette("C:/code/voxbox/hls.png")
+#
+#volume = read_frames("C:/code/cubiquity-for-unity3d/Assets/Cubiquity/CubiquitySDK/Windows/x86-64/", palette)
+#
+#filename = "rain.vox"
+#voxbox.magicavoxel.write([volume], filename, palette)
+#voxbox.util.open_in_default_app(filename)
